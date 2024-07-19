@@ -1,7 +1,7 @@
 <!-- src/lib/Box.svelte -->
 <script lang="ts">
     import { selected } from '../lib/stores.js'
-    export let width = 'w-64';
+    export let width = 'w-60';
     export let height = 'h-32';
     export let word:string
     export let depth
@@ -41,7 +41,7 @@
     }
   </script>
   
-  <button bind:this={boxElement} class={`rounded-lg ${ isClicked ? 'bg-blue-500 ' : 'bg-gray-500'} ${depth} ${width} ${height} relative`} 
+  <button bind:this={boxElement} class={`text-xl rounded-lg ${ isClicked ? 'bg-blue-500 ' : 'bg-gray-500'} ${depth} ${width} ${height} relative`} 
     on:click={handle_click}>{word}
   </button>
 

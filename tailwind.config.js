@@ -4,7 +4,12 @@ module.exports = {
     "./src/**/*.{html,js,svelte,ts}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'roboto-condensed': ['Roboto Condensed', 'sans-serif'],
+        'roboto-slab': ['Roboto Slab', 'serif'],
+      },
+    },
   },
   plugins: [],
 }
