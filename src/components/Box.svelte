@@ -1,10 +1,10 @@
 <!-- src/lib/Box.svelte -->
 <script lang="ts">
     import { selected } from '../lib/stores.js'
-    export let width = 'w-60';
-    export let height = 'h-32';
     export let word:string
     export let depth
+    export let disabled
+    export let bg
     
     let isClicked = false
     let boxElement : HTMLElement
@@ -41,8 +41,9 @@
     }
   </script>
   
-  <button bind:this={boxElement} class={`text-xl rounded-lg ${ isClicked ? 'bg-blue-500 ' : 'bg-gray-500'} ${depth} ${width} ${height} relative`} 
-    on:click={handle_click}>{word}
+  <button bind:this={boxElement} class={`text-xl rounded-lg ${ isClicked ? 'text-white bg-gray-500 ' : `text-black ${bg}` } ${depth} 
+    w-60 h-32 font-semibold relative`} disabled={disabled}
+    on:click={handle_click}>{word.toUpperCase()}
   </button>
 
  

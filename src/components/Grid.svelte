@@ -10,6 +10,9 @@
   export let answers
   export let button_depths
   export let longbox_depths
+  export let disableds
+  export let bgs
+
   let inds = [[0,1,2,3], [4,5,6,7], [8,9,10,11], [12,13,14,15]]
 
   const dispatch = createEventDispatcher();
@@ -41,7 +44,7 @@
   {#each inds as ind_list, i}
     <div class="grid grid-cols-4 gap-4 relative col-span-4">
       {#each ind_list as index}
-        <Box bind:this={boxComponents[index]} word={word_list[index]} depth={button_depths[i]} />
+        <Box bind:this={boxComponents[index]} word={word_list[index]} depth={button_depths[i]} disabled={disableds[i]} bg={bgs[i]} />
       {/each}
       <LongBox category = {categories[i]} ans = {answers[i]} color = {colors[i]} depth={longbox_depths[i]} />
     </div>
