@@ -195,25 +195,28 @@
   }
 </script>
 
-<div class="flex justify-center items-center h-screen w-screen bg-white">
-	<div class="card rounded-lg text-token text-center max-w-7xl h-5/6 bg-white">
+
+	
     <p class="mb-8 text-black text-2xl">Create groups of four!</p>
 
     <Grid bind:this={grid} word_list={word_list} colors={current_colors} categories = {current_categories} 
       answers = {current_answers} button_depths={button_depths} longbox_depths={longbox_depths} on:buttons={handleButtons} />
 
-    <button class="bg-gray-500 text-xl rounded-lg mt-8 p-3" on:click={generate_words}>
-      Regenerate Puzzle
-    </button>
-    <button class="bg-gray-500 text-xl rounded-lg p-3" on:click={shuffle_words}>
-      Shuffle
-    </button>
-    <button class="bg-gray-500 text-xl rounded-lg p-3" on:click={() => grid.onReset()}>
-      Deselect All 
-    </button>
-    <button class="bg-gray-500 rounded-lg p-3 text-xl disabled:opacity-50" on:click={check_words} disabled={$selected.length < 4}>
-      Submit
-    </button>
+    <div>
+      <button class="bg-gray-500 text-xl rounded-lg mt-8 p-3" on:click={generate_words}>
+        Regenerate Puzzle
+      </button>
+      <button class="bg-gray-500 text-xl rounded-lg p-3" on:click={shuffle_words}>
+        Shuffle
+      </button>
+      <button class="bg-gray-500 text-xl rounded-lg p-3" on:click={() => grid.onReset()}>
+        Deselect All 
+      </button>
+      <button class="bg-gray-500 rounded-lg p-3 text-xl disabled:opacity-50" on:click={check_words} disabled={$selected.length < 4}>
+        Submit
+      </button>
+    </div>
+
 
     <!-- for debugging: -->
     <!-- {#each $selected as item}
@@ -221,5 +224,3 @@
         {item.name}
       </p>
     {/each} -->
-  </div>
-</div>

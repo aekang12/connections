@@ -37,7 +37,7 @@
   });
 </script>
 
-<div class="grid grid-cols-4 gap-4 justify-center items-center">
+<div class="grid grid-cols-4 gap-4 justify-center max-w-5xl mx-auto">
   {#each inds as ind_list, i}
     <div class="grid grid-cols-4 gap-4 relative col-span-4">
       {#each ind_list as index}

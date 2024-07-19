@@ -12,7 +12,7 @@
     }
   </script>
   
-  <div bind:this={longboxElement} class={`${color} rounded-lg h-32 w-full absolute top-0 ${depth}`}>
+  <div bind:this={longboxElement} class={`${color} rounded-md h-32 w-full absolute top-0 ${depth}`}>
     <div class=text-black>{category}</div>
     <div class=text-black>
         {#each ans as word}
