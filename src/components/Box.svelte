@@ -35,9 +35,7 @@
     // Function to reset the button state on deselection
     export function reset() {
         isClicked = false;
-        boxElement.classList.toggle('bg-blue-500', isClicked);
-        boxElement.classList.toggle('bg-gray-500', !isClicked);
-        selected.update((list) => list.filter(listItem => listItem.name !== word));
+        selected.set([])
     }
   </script>
   

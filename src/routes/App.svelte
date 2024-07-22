@@ -15,16 +15,20 @@
   
   let word_list = ["channel", "menu", "power", "volume", "block", "cover", "screen", "shield", 
                    "cherry", "olive", "sword", "umbrella", "casino", "diamonds", "quantum", "tomorrow"];
-  
-  function generate_words() {
+  let isLoading = false
+
+  async function generate_words() {
+    isLoading = true
     query({"inputs" : prompts['dummy_prompt'] }, "mistral-instruct").then((response) => {
-      console.log(typeof response)
-      let response_JSON = JSON.parse(response)
-      console.log(response_JSON)
+      console.log(response)
+      var rx3 = /{([^}]+)}/;
+      var rx = /\{[^}]+\}/g
+      const stringlist = response.match(rx)
+      console.log(stringlist)
+      isLoading = false
     })
     return;
   }
-
   
   // ----------------------------------------------------------------------
   // GAME STATE PARAMETERS
@@ -48,9 +52,6 @@
   let button_bgs = ["bg-gray-300", "bg-gray-300", "bg-gray-300", "bg-gray-300"]
   let disableds = [false, false, false, false]
 
-  interface ButtonsEventDetail {
-    buttons: HTMLElement[];
-  }
   // get the original positions of all the buttons for animateCorrect()
   const handleButtons = (event : CustomEvent) => {
     buttons = event.detail.buttons;
@@ -80,8 +81,6 @@
   function shuffle_words() {
     let answered = word_list.slice(0, row_counter * 4);
     let to_shuffle = word_list.slice(row_counter * 4, 16);
-    console.log(answered)
-    console.log(to_shuffle)
     let currentIndex = to_shuffle.length;
     // While there remain elements to shuffle...
     while (currentIndex != 0) {
@@ -100,26 +99,30 @@
   // ----------------------------------------------------------------------
   // ANIMATIONS 
   //----------------------------------------------------------------------
-  // TODO: add more comments explaining this code 
   async function animateCorrect(category : string, ans : string[]) {
-    // gather index info for the word swap 
+    // button elements to be animated 
     let guessed_buttons : HTMLElement[] = [] 
+    let target_buttons = [buttons[row_counter*4], buttons[row_counter*4+1], buttons[row_counter*4+2], buttons[row_counter*4+3]]
+
+    // index/string info for swapping words 
     let answers : string[] = []
     let answer_indices : number[] =[]
     let replacement_indices = [row_counter*4, row_counter*4 + 1, row_counter*4 + 2, row_counter*4 + 3]
-    let target_buttons = [buttons[row_counter*4], buttons[row_counter*4+1], buttons[row_counter*4+2], buttons[row_counter*4+3]]
+    
 
+    // populate replacement_indices with indices of buttons in the answer row that need to be swapped out 
+    // populate answer_indices with indices of the selected answers that aren't already in correct row 
     $selected.forEach((el) => {
       guessed_buttons.push(el.element)
-      let ind = word_list.indexOf(el.name)
-      if (ind < row_counter*4 + 4 && ind >= row_counter*4) {
-        replacement_indices.splice(replacement_indices.indexOf(ind), 1) // remove if guessed button is already in correct row
-      } else {
-        answer_indices.push(word_list.indexOf(el.name)) 
+      let ind = word_list.indexOf(el.name.toLowerCase())
+      if (ind < row_counter*4 + 4 && ind >= row_counter*4) { // guessed button is already in the correct row 
+        replacement_indices.splice(replacement_indices.indexOf(ind), 1) // remove from replacement_indices, do not add to answer_indices
+      } else { // guessed button is not already in correct row and needs to be swapped 
+        answer_indices.push(word_list.indexOf(el.name.toLowerCase())) 
         answers.push(el.name)
       }
     })
-
+    
     var t1 = anime.timeline({
       targets: guessed_buttons,
     }).add({ // make the buttons cascade upon clicking
@@ -135,6 +138,7 @@
           word_list[replacement_indices[i]] = answers[i]
         }
         grid.onReset()
+        console.log("hi")
       }
     }).add({ // animate button bulge 
       targets: target_buttons,
@@ -154,7 +158,6 @@
         longbox_depths[row_counter] = "z-10"
         disableds[row_counter] = true
         button_bgs[row_counter] = "bg-transparent"
-        grid.onReset()
         row_counter += 1
       }
     })
@@ -202,9 +205,25 @@
       }
     });
   }
-</script>
 
-<p class="mb-8 text-black text-2xl">Create groups of four!</p>
+  function animateLoading() {
+    var t1 = anime.timeline({
+      targets: buttons,
+    }).add({ //make the buttons cascade upon click
+      targets: buttons,
+      translateY: [
+        { value: -5 },
+        { value: 1 },
+      ], 
+      delay: anime.stagger(50)
+    })
+  }
+</script>
+{#if isLoading}
+  <p class="mb-8 text-black text-2xl">Generating puzzle...</p>
+{:else}
+  <p class="mb-8 text-black text-2xl">Create groups of four!</p>
+{/if}
 <Grid bind:this={grid} word_list={word_list} colors={current_colors} categories = {current_categories} 
   answers = {current_answers} button_depths={button_depths} longbox_depths={longbox_depths} disableds={disableds} 
   bgs = {button_bgs}

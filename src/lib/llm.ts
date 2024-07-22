@@ -1,4 +1,5 @@
 import { HfInference } from "@huggingface/inference";
+// export let isLoading = false
 
 type JSONData = { [x: string]: string } | JSONData[];
 
@@ -15,6 +16,7 @@ export const models = {"gpt2" : "https://api-inference.huggingface.co/models/gpt
 
 
 export async function query(data : JSONData, model : string) {
+    // isLoading = true
     if (model === "gpt2") {
         const response = await fetch(
             "https://api-inference.huggingface.co/models/gpt2",
@@ -40,6 +42,7 @@ export async function query(data : JSONData, model : string) {
         })) {
             fullResponse += chunk.choices[0]?.delta?.content || "";
         }
+        // isLoading = false
         return fullResponse
     }
     
