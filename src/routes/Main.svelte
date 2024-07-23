@@ -1,5 +1,4 @@
 <script>
-      import {query, prompts} from '../lib/llm'
       import { createStepController } from '@efstajas/svelte-stepper';
 
       const stepController = createStepController();

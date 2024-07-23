@@ -27,6 +27,7 @@
 	"dependencies": {
 		"@efstajas/svelte-stepper": "^0.2.1",
 		"@huggingface/inference": "^2.8.0",
-		"animejs": "^3.2.2"
+		"animejs": "^3.2.2",
+		"openai": "^4.53.0"
 	}
 }

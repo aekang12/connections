@@ -20,6 +20,6 @@ with jsonlines.open(input_file_path, mode='r') as reader, jsonlines.open(output_
                         "theme, synonym, pop-culture motif, fill-in-the-blank prompt, or play on words. "
         message = [{"role" : "system", "content" : system_prompt}]
         message.append({"role": "user", "content" : "Generate a " + obj["type"] + " word association category."})
-        message.append({"role" : "assistant", "content" : '\{"pattern" : ' + pattern + ', "keywords" : \[' + obj[pattern] + '\]\}'})
+        message.append({"role" : "assistant", "content" : '\{pattern : ' + pattern + ', keywords : ' + obj[pattern] + '\}'})
         line = {"messages" : message}
         writer.write(line)

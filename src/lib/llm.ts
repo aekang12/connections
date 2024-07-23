@@ -1,50 +1,122 @@
 import { HfInference } from "@huggingface/inference";
-// export let isLoading = false
+import OpenAI from "openai";
+import { prompts } from "./prompts"
 
 type JSONData = { [x: string]: string } | JSONData[];
 
-const API_KEY = import.meta.env.VITE_API_KEY
-const dummy_prompt = "Below, each JSON line has a pattern that the four keywords follow:"
-                     + "[{\"pattern\": \"school facilities\", \"keywords\": \"auditorium, gym, lab, library\"}"
-                     + "{\"pattern\": \"roulette bets\", \"keywords\": \"black, even, odd, red\"}" 
-                     + "{\"pattern\" : \"associated with \"dove\"\", \"keywords\": \"chocolate, peace, pigeon, soap\"}"
-                     + "{\"pattern\": \"___ goose\", \"keywords\": \"grey, golden, mother, silly\"}]"
-                     + "Generate four more patterns and their associated four keywords similar to the above examples in JSON format."
-                     + "Do not reuse any of the above examples. Do not return anything besides the example. Each keyword should only be one word"
-export const prompts = {"dummy_prompt" : dummy_prompt}
-export const models = {"gpt2" : "https://api-inference.huggingface.co/models/gpt2", "mistral-instruct" : "mistralai/Mistral-7B-Instruct-v0.2"}
+const HF_KEY = import.meta.env.VITE_HF_KEY
+const OPENAI_KEY = import.meta.env.VITE_OPENAI_KEY
 
+const openai = new OpenAI({
+  apiKey: OPENAI_KEY, dangerouslyAllowBrowser: true
+});
 
-export async function query(data : JSONData, model : string) {
+export async function query(model : string) {
     // isLoading = true
-    if (model === "gpt2") {
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/gpt2",
-            {
-                headers: { 
-                    Authorization: `Bearer ${API_KEY}`,
-                    'Content-Type' : 'application/json'
-                },
-                method: "POST",
-                body: JSON.stringify(data),
-            }
-        );
-        const result = await response.json();
-        return result;
-    }
-    else if (model === "mistral-instruct") {
-        let fullResponse = ""
-        const inference = new HfInference(`${API_KEY}`);
-        for await (const chunk of inference.chatCompletionStream({
-            model: "mistralai/Mistral-7B-Instruct-v0.2",
-            messages: [{ role: "user", content: prompts["dummy_prompt"] }],
-            max_tokens: 500,
-        })) {
-            fullResponse += chunk.choices[0]?.delta?.content || "";
-        }
-        // isLoading = false
-        return fullResponse
-    }
+    // if (model === "mistral-instruct") {
+    //     let fullResponse = ""
+    //     const inference = new HfInference(`${HF_KEY}`);
+    //     for await (const chunk of inference.chatCompletionStream({
+    //         model: "mistralai/Mistral-7B-Instruct-v0.2",
+    //         messages: [{ role: "user", content: prompts["dummy"] }],
+    //         max_tokens: 500,
+    //     })) {
+    //         fullResponse += chunk.choices[0]?.delta?.content || "";
+    //     }
+    //     // isLoading = false
+    //     return fullResponse
+
+    const response = await openai.chat.completions.create({
+    model: "ft:gpt-3.5-turbo-0125:personal:syn-theme:9npLB8YN",
+    messages: [
+        {
+        "role": "system",
+        "content": "You are a helpful connections game generator that responds in JSON format. "
+        },
+        {
+        "role": "user",
+        "content": "Generate a synonym group, which consists of four keywords that are synonymous with a pattern-word."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : some common features of animals, keywords : fur, hooves, scales, tail\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate a synonym group, which consists of four keywords that are synonymous with a pattern-word."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : deposition from fire, keywords : ash, cinder, dust, soot\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate a thematic group, which consists of four keywords that are related to a theme given by a pattern-word or phrase."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : substrates for writing, keywords : chalkboard, paper, slate, tablet\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate a thematic group, which consists of four keywords that are related to a theme given by a pattern-word or phrase."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : words before a colon, keywords : attention, caution, note, warning\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate two thematic groups and two synonym groups."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : tropical fruits, keywords : banana, coconut, mango, pineapple\\}, \\{pattern : olympic events, keywords : curling, fencing, rowing, skiing\\}, \\{pattern : into-camera looks, keywords : gaze, glare, smile, stare\\}, \\{pattern : musical trio, keywords : attached, bound, connected, linked\\}"
+        },
+        {
+        "role": "user",
+        "content":"Generate two thematic groups and two synonym groups."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : pieces of furniture, keywords : chair, couch, desk, table\\}, \\{pattern : responses during roll call, keywords : aye, here, present, yes\\}, \\{pattern : counterbalance, keywords : compensate, offset, weigh, zero\\}, \\{pattern : yuletide, keywords : christmas, december, holiday, santa\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : makes up the policestates, keywords : big brother, cameras, law, surveillance\\}, \\{pattern : river mouths, keywords : delta, estuary, mouth, outlet\\}, \\{pattern : informal credit, keywords : boodle, grease, juice, scratch\\}, \\{pattern : social info summaries, keywords : bio, cv, résumé, vitæ\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
+        },
+        {
+        "role": "assistant",
+        "content":"\\{pattern : needs a light, keywords : candle, cigarette, joint, torch\\}, \\{pattern : moves like jagger, keywords : gyrate, jazz, rock, shimmy\\}, \\{pattern : without markings, keywords : blank, clear, empty, plain\\}, \\{pattern : worth ten cents, keywords : coin, dime, money, piece\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
+        },
+        {
+        "role": "assistant",
+        "content": "\\{pattern : parts of the leg, keywords : calf, ham, shank, thigh\\}, \\{pattern : words for crazy people, keywords : cuckoo, insane, loony, nuts\\}, \\{pattern : nonstick finishes, keywords : oil, teflon, wax, zinc\\}, \\{pattern : objects shining at night, keywords : firefly, lamp, moon, star\\}"
+        },
+        {
+        "role": "user",
+        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
+        },
+    ],
+    temperature: 1,
+    max_tokens: 256,
+    top_p: 1,
+    frequency_penalty: 0.2,
+    presence_penalty: 0.2,
+    });
+    return response
     
 }
 

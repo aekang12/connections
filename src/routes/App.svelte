@@ -2,31 +2,49 @@
   import { selected } from '../lib/stores';
   import Grid from '../components/Grid.svelte';
   import anime from 'animejs/lib/anime.min.js';
-  import {query, prompts} from '../lib/llm'
+  import {query} from '../lib/llm'
   import Box from '../components/Box.svelte';
 
   // ------------
   // PUZZLE GENERATION 
   // ------------
-  let solution = {"remote control buttons" : ["channel", "menu", "power", "volume"], 
+  let solution : { [key: string]: string[] } = {"remote control buttons" : ["channel", "menu", "power", "volume"], 
                   "hide from view" : ["block", "cover", "screen", "shield"], 
                   "drink garnishes" : ["cherry", "olive", "sword", "umbrella"], 
                   "first word in Bond movie titles" : ["casino", "diamonds", "quantum", "tomorrow"]};
   
-  let word_list = ["channel", "menu", "power", "volume", "block", "cover", "screen", "shield", 
+  let word_list : string[] = ["channel", "menu", "power", "volume", "block", "cover", "screen", "shield", 
                    "cherry", "olive", "sword", "umbrella", "casino", "diamonds", "quantum", "tomorrow"];
   let isLoading = false
 
   async function generate_words() {
     isLoading = true
-    query({"inputs" : prompts['dummy_prompt'] }, "mistral-instruct").then((response) => {
-      console.log(response)
-      var rx3 = /{([^}]+)}/;
-      var rx = /\{[^}]+\}/g
-      const stringlist = response.match(rx)
-      console.log(stringlist)
-      isLoading = false
+    query("gpt").then((response) => {
+      const response_str = response["choices"][0]["message"]["content"]
+      const regex = /\{pattern : (.*?), keywords : (.*?)\}/g;
+
+      var new_sol : { [key: string]: string[] }= {};
+      var new_word_list : string[] = []
+      let match;
+
+      if (response_str) {
+        while ((match = regex.exec(response_str)) !== null) {
+          const patternText = match[1].trim();
+          let cleaned = match[2].replace(/\\/g, '');
+          const keywordsText = cleaned.split(',').map(keyword => keyword.trim());
+          console.log(typeof(keywordsText))
+          console.log(keywordsText)
+          new_sol[patternText] = keywordsText;
+          new_word_list = new_word_list.concat(keywordsText)
+        }
+        solution = new_sol
+        word_list = new_word_list
+        shuffle_words()
+      } else {
+        console.log("need to handle error ")
+      }
     })
+    isLoading = false
     return;
   }
   
@@ -42,17 +60,18 @@
 
   // longbox parameters
   let color_palette = ["bg-yellow-200", "bg-lime-200", "bg-cyan-200", "bg-violet-200"]
+  // following arrays will be populated with correct values as the user guesses correct answers
   let current_colors = ["bg-transparent", "bg-transparent", "bg-transparent", "bg-transparent"]
   let current_categories = ["", "", "", ""]
   let current_answers : string[][] = [[], [], [], []]
   let longbox_depths = ["z-0", "z-0", "z-0", "z-0"]
 
-  // button parameters
+  // button parameters, values will change as user guesses correct answers
   let button_depths = ["z-10", "z-10", "z-10", "z-10"]
   let button_bgs = ["bg-gray-300", "bg-gray-300", "bg-gray-300", "bg-gray-300"]
   let disableds = [false, false, false, false]
 
-  // get the original positions of all the buttons for animateCorrect()
+  // get the button elements/names for animateCorrect()
   const handleButtons = (event : CustomEvent) => {
     buttons = event.detail.buttons;
   };
@@ -60,6 +79,7 @@
   // ----------------------------------------------------------------------
   // GAME BUTTON FUNCTIONS
   // ----------------------------------------------------------------------
+  // checks if user's selected guess is a correct answer or not, calls corresponding animation
   function check_words() {
     for (const [category, answers] of Object.entries(solution)) {
       let found_words = 0;
