@@ -19,30 +19,44 @@
 
   async function generate_words() {
     isLoading = true
-    query("gpt").then((response) => {
-      const response_str = response["choices"][0]["message"]["content"]
-      const regex = /\{pattern : (.*?), keywords : (.*?)\}/g;
-
+    // query the LLM 
+    query("gpt").then((all_responses) => {
       var new_sol : { [key: string]: string[] }= {};
       var new_word_list : string[] = []
-      let match;
+      console.log(all_responses)
+      if (all_responses) {
+        for (var response of all_responses) {
+        if (response) {
+          // extract the text from the response object 
+          const response_str = response["choices"][0]["message"]["content"]
+          const regex = /\{pattern : (.*?), keywords : (.*?)\}/g;
+          let match;
 
-      if (response_str) {
-        while ((match = regex.exec(response_str)) !== null) {
-          const patternText = match[1].trim();
-          let cleaned = match[2].replace(/\\/g, '');
-          const keywordsText = cleaned.split(',').map(keyword => keyword.trim());
-          console.log(typeof(keywordsText))
-          console.log(keywordsText)
-          new_sol[patternText] = keywordsText;
-          new_word_list = new_word_list.concat(keywordsText)
+          if (response_str) {
+            // extract the pattern and keywords from the text
+            while ((match = regex.exec(response_str)) !== null) {
+              const patternText = match[1].trim();
+              let cleaned = match[2].replace(/\\/g, '');
+              const keywordsText = cleaned.split(',').map(keyword => keyword.trim());
+              console.log(typeof(keywordsText))
+              console.log(keywordsText)
+              new_sol[patternText] = keywordsText;
+              new_word_list = new_word_list.concat(keywordsText)
+            }
+          } else {
+            console.log("need to handle error ")
+          }
+        } else{
+          console.log("need to handle error")
         }
-        solution = new_sol
-        word_list = new_word_list
-        shuffle_words()
-      } else {
-        console.log("need to handle error ")
+      } 
+      solution = new_sol
+      word_list = new_word_list
+      shuffle_words()
+      } else{
+        console.log("need to handle error")
       }
+      
     })
     isLoading = false
     return;

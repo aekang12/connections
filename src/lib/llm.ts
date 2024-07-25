@@ -3,13 +3,59 @@ import OpenAI from "openai";
 import { prompts } from "./prompts"
 
 type JSONData = { [x: string]: string } | JSONData[];
+interface Message {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
 
 const HF_KEY = import.meta.env.VITE_HF_KEY
 const OPENAI_KEY = import.meta.env.VITE_OPENAI_KEY
-
+const MAXNUM = 100
 const openai = new OpenAI({
   apiKey: OPENAI_KEY, dangerouslyAllowBrowser: true
 });
+
+async function query_syn_theme(input : Message[]) {
+    const response = await openai.chat.completions.create({
+        model: "ft:gpt-3.5-turbo-0125:personal:syn-theme:9npLB8YN",
+        messages: input,
+        temperature: 1,
+        max_tokens: 256,
+        top_p: 1,
+        frequency_penalty: 0.2,
+        presence_penalty: 0.2,
+    });
+    console.log(response)
+    return response
+}
+
+async function query_fitb(input : Message[]) {
+    const response = await openai.chat.completions.create({
+        model: "ft:gpt-3.5-turbo-0125:personal:fitb:9nu4RxpE",
+        messages: input,
+        temperature: 1,
+        max_tokens: 256,
+        top_p: 1,
+        frequency_penalty: 0.2,
+        presence_penalty: 0.2,
+    });
+    return response
+
+}
+
+async function query_pop(input : Message[]) {
+    const response = await openai.chat.completions.create({
+        model: "ft:gpt-3.5-turbo-0125:personal:pop:9oJXKCvm",
+        messages: input,
+        temperature: 1,
+        max_tokens: 256,
+        top_p: 1,
+        frequency_penalty: 0.2,
+        presence_penalty: 0.2,
+    });
+    return response
+
+}
 
 export async function query(model : string) {
     // isLoading = true
@@ -26,97 +72,46 @@ export async function query(model : string) {
     //     // isLoading = false
     //     return fullResponse
 
-    const response = await openai.chat.completions.create({
-    model: "ft:gpt-3.5-turbo-0125:personal:syn-theme:9npLB8YN",
-    messages: [
-        {
-        "role": "system",
-        "content": "You are a helpful connections game generator that responds in JSON format. "
-        },
-        {
-        "role": "user",
-        "content": "Generate a synonym group, which consists of four keywords that are synonymous with a pattern-word."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : some common features of animals, keywords : fur, hooves, scales, tail\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate a synonym group, which consists of four keywords that are synonymous with a pattern-word."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : deposition from fire, keywords : ash, cinder, dust, soot\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate a thematic group, which consists of four keywords that are related to a theme given by a pattern-word or phrase."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : substrates for writing, keywords : chalkboard, paper, slate, tablet\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate a thematic group, which consists of four keywords that are related to a theme given by a pattern-word or phrase."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : words before a colon, keywords : attention, caution, note, warning\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate two thematic groups and two synonym groups."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : tropical fruits, keywords : banana, coconut, mango, pineapple\\}, \\{pattern : olympic events, keywords : curling, fencing, rowing, skiing\\}, \\{pattern : into-camera looks, keywords : gaze, glare, smile, stare\\}, \\{pattern : musical trio, keywords : attached, bound, connected, linked\\}"
-        },
-        {
-        "role": "user",
-        "content":"Generate two thematic groups and two synonym groups."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : pieces of furniture, keywords : chair, couch, desk, table\\}, \\{pattern : responses during roll call, keywords : aye, here, present, yes\\}, \\{pattern : counterbalance, keywords : compensate, offset, weigh, zero\\}, \\{pattern : yuletide, keywords : christmas, december, holiday, santa\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : makes up the policestates, keywords : big brother, cameras, law, surveillance\\}, \\{pattern : river mouths, keywords : delta, estuary, mouth, outlet\\}, \\{pattern : informal credit, keywords : boodle, grease, juice, scratch\\}, \\{pattern : social info summaries, keywords : bio, cv, résumé, vitæ\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
-        },
-        {
-        "role": "assistant",
-        "content":"\\{pattern : needs a light, keywords : candle, cigarette, joint, torch\\}, \\{pattern : moves like jagger, keywords : gyrate, jazz, rock, shimmy\\}, \\{pattern : without markings, keywords : blank, clear, empty, plain\\}, \\{pattern : worth ten cents, keywords : coin, dime, money, piece\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
-        },
-        {
-        "role": "assistant",
-        "content": "\\{pattern : parts of the leg, keywords : calf, ham, shank, thigh\\}, \\{pattern : words for crazy people, keywords : cuckoo, insane, loony, nuts\\}, \\{pattern : nonstick finishes, keywords : oil, teflon, wax, zinc\\}, \\{pattern : objects shining at night, keywords : firefly, lamp, moon, star\\}"
-        },
-        {
-        "role": "user",
-        "content": "Generate two thematic groups and two synonym groups with cross-category ambiguity between keywords."
-        },
-    ],
-    temperature: 1,
-    max_tokens: 256,
-    top_p: 1,
-    frequency_penalty: 0.2,
-    presence_penalty: 0.2,
-    });
-    return response
+    // choose what type of puzzle to generate using randnum
+    const randnum = Math.floor(Math.random() * MAXNUM)
+    if (randnum <= 25) { // generate syn-theme puzzle 
+        console.log("syn-theme")
+        try {
+            const response = await query_syn_theme(prompts["gpt_syn_theme_4"]);
+            return [response];
+          } catch (error) {
+            console.error('Error fetching response:', error);
+          }
+    } else if (randnum <= 50) { // generate fitb-syn-theme 
+        console.log("generating fitb-syn-theme")
+        try {
+            const fitb_response = await query_fitb(prompts["gpt_fitb"])
+            const syn_theme_response = await query_syn_theme(prompts["gpt_syn_theme_3"]);
+            return [fitb_response, syn_theme_response]
+        } catch (error ) {
+            console.error('Error fetching response:', error);
+        }
+    } else if (randnum <= 75) { // generate pop-syn-theme
+        console.log("generating pop-syn-theme")
+        try {
+            const pop_response = await query_pop(prompts["gpt_pop"])
+            const syn_theme_response = await query_syn_theme(prompts["gpt_syn_theme_3"]);
+            return [pop_response, syn_theme_response]
+        } catch (error ) {
+            console.error('Error fetching response:', error);
+        }
+    } else { // generate fitb-pop-syn-theme
+        console.log("generating fitb-pop-syn-theme")
+        try {
+            const fitb_response = await query_fitb(prompts["gpt_fitb"])
+            const pop_response = await query_pop(prompts["gpt_pop"])
+            const syn_theme_response = await query_syn_theme(prompts["gpt_syn_theme_2"]);
+            return [fitb_response, pop_response, syn_theme_response]
+        } catch (error ) {
+            console.error('Error fetching response:', error);
+        }
+    }
+    
     
 }
 
