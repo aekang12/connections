@@ -58,6 +58,7 @@ async function query_pop(input : Message[]) {
 }
 
 export async function query(model : string) {
+    // return null
     // isLoading = true
     // if (model === "mistral-instruct") {
     //     let fullResponse = ""
@@ -81,6 +82,7 @@ export async function query(model : string) {
             return [response];
           } catch (error) {
             console.error('Error fetching response:', error);
+            return null
           }
     } else if (randnum <= 50) { // generate fitb-syn-theme 
         console.log("generating fitb-syn-theme")
@@ -90,6 +92,7 @@ export async function query(model : string) {
             return [fitb_response, syn_theme_response]
         } catch (error ) {
             console.error('Error fetching response:', error);
+            return null
         }
     } else if (randnum <= 75) { // generate pop-syn-theme
         console.log("generating pop-syn-theme")
@@ -99,6 +102,7 @@ export async function query(model : string) {
             return [pop_response, syn_theme_response]
         } catch (error ) {
             console.error('Error fetching response:', error);
+            return null
         }
     } else { // generate fitb-pop-syn-theme
         console.log("generating fitb-pop-syn-theme")
@@ -109,6 +113,7 @@ export async function query(model : string) {
             return [fitb_response, pop_response, syn_theme_response]
         } catch (error ) {
             console.error('Error fetching response:', error);
+            return null
         }
     }
     

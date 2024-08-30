@@ -4,63 +4,8 @@
   import anime from 'animejs/lib/anime.min.js';
   import {query} from '../lib/llm'
   import Box from '../components/Box.svelte';
-
-  // ------------
-  // PUZZLE GENERATION 
-  // ------------
-  let solution : { [key: string]: string[] } = {"remote control buttons" : ["channel", "menu", "power", "volume"], 
-                  "hide from view" : ["block", "cover", "screen", "shield"], 
-                  "drink garnishes" : ["cherry", "olive", "sword", "umbrella"], 
-                  "first word in Bond movie titles" : ["casino", "diamonds", "quantum", "tomorrow"]};
-  
-  let word_list : string[] = ["channel", "menu", "power", "volume", "block", "cover", "screen", "shield", 
-                   "cherry", "olive", "sword", "umbrella", "casino", "diamonds", "quantum", "tomorrow"];
-  let isLoading = false
-
-  async function generate_words() {
-    isLoading = true
-    // query the LLM 
-    query("gpt").then((all_responses) => {
-      var new_sol : { [key: string]: string[] }= {};
-      var new_word_list : string[] = []
-      console.log(all_responses)
-      if (all_responses) {
-        for (var response of all_responses) {
-        if (response) {
-          // extract the text from the response object 
-          const response_str = response["choices"][0]["message"]["content"]
-          const regex = /\{pattern : (.*?), keywords : (.*?)\}/g;
-          let match;
-
-          if (response_str) {
-            // extract the pattern and keywords from the text
-            while ((match = regex.exec(response_str)) !== null) {
-              const patternText = match[1].trim();
-              let cleaned = match[2].replace(/\\/g, '');
-              const keywordsText = cleaned.split(',').map(keyword => keyword.trim());
-              console.log(typeof(keywordsText))
-              console.log(keywordsText)
-              new_sol[patternText] = keywordsText;
-              new_word_list = new_word_list.concat(keywordsText)
-            }
-          } else {
-            console.log("need to handle error ")
-          }
-        } else{
-          console.log("need to handle error")
-        }
-      } 
-      solution = new_sol
-      word_list = new_word_list
-      shuffle_words()
-      } else{
-        console.log("need to handle error")
-      }
-      
-    })
-    isLoading = false
-    return;
-  }
+  import Navbar from '../components/Navbar.svelte'
+  import { onMount } from 'svelte';
   
   // ----------------------------------------------------------------------
   // GAME STATE PARAMETERS
@@ -68,6 +13,13 @@
   // row_counter is a tracker for which row you will fill next with correct guesses 
   // buttons is an array of button elements, filled by Grid.svelte
   // ----------------------------------------------------------------------
+  let solution : { [key: string]: string[] } = {};  
+  let word_list : string[] = ["...", "...", "...", "...", "...", "...", "...", "...", 
+                   "...", "...", "...", "...", "...", "...", "...", "..."];
+  let message = ""
+  let mistakes = 4
+  let isLoading = false
+
   let row_counter = 0
   let buttons : Box[] = [] 
   let grid : Grid; 
@@ -89,6 +41,83 @@
   const handleButtons = (event : CustomEvent) => {
     buttons = event.detail.buttons;
   };
+
+  // ------------
+  // PUZZLE GENERATION 
+  // ------------
+  onMount(() => {
+    generate_words();
+  });
+
+  async function generate_words() {
+    // need to reset game state (make longboxes invisible again, reset buttons, etc.)
+    row_counter = 0
+    current_colors = ["bg-transparent", "bg-transparent", "bg-transparent", "bg-transparent"]
+    current_categories = ["", "", "", ""]
+    word_list = ["...", "...", "...", "...", "...", "...", "...", "...", 
+                   "...", "...", "...", "...", "...", "...", "...", "..."];
+    current_answers = [[], [], [], []]
+    longbox_depths = ["z-0", "z-0", "z-0", "z-0"]
+    button_depths = ["z-10", "z-10", "z-10", "z-10"]
+    button_bgs = ["bg-gray-300", "bg-gray-300", "bg-gray-300", "bg-gray-300"]
+    disableds = [false, false, false, false]
+    grid.onReset()
+
+    isLoading = true; // Set loading state to true
+    message = "Generating puzzle..."
+    try {
+      // Await the query function to ensure it completes before proceeding
+      const all_responses = await query("gpt");
+
+      var new_sol : {[key : string] : string[] }= {};
+      var new_word_list : string[] = [];
+
+      console.log(all_responses);
+      if (all_responses) {
+        for (var response of all_responses) {
+          if (response) {
+            // Extract the text from the response object
+            const response_str = response["choices"][0]["message"]["content"];
+            const regex = /\{pattern : (.*?), keywords : (.*?)\}/g;
+            let match;
+
+            if (response_str) {
+              // Extract the pattern and keywords from the text
+              while ((match = regex.exec(response_str)) !== null) {
+                const patternText = match[1].trim();
+                let cleaned = match[2].replace(/\\/g, '');
+                const keywordsText = cleaned.split(',').map(keyword => keyword.trim());
+                console.log(typeof(keywordsText));
+                console.log(keywordsText);
+                new_sol[patternText] = keywordsText;
+                new_word_list = new_word_list.concat(keywordsText);
+              }
+            } else {
+              console.log("error parsing reponse string");
+              message = "Sorry! Something went wrong. You can try again or report the problem."
+            }
+          } else {
+            console.log("one of the responses in response_str is null");
+            message = "Sorry! Something went wrong. You can try again or report the problem."
+          }
+        }
+        solution = new_sol;
+        word_list = new_word_list;
+        shuffle_words();
+      } else {
+        console.log("all_responses is null");
+        message = "Sorry! Something went wrong. You can try again or report the problem."
+      }
+    } catch (error) {
+      console.error("Error querying GPT:", error);
+      message = "Sorry! Something went wrong. You can try again or report the problem."
+    } finally {
+      isLoading = false; // Set loading state to false after processing is done
+      if (message !== "Sorry! Something went wrong. You can try again or report the problem.") {
+        message = "Create groups of four!"
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------
   // GAME BUTTON FUNCTIONS
@@ -236,46 +265,42 @@
           translateX: 0,
           duration: 0
         });
+        // update mistakes and reveal answers if game over
+        mistakes = mistakes - 1
+        if (mistakes === 0 ) { 
+          for (const [category, answers] of Object.entries(solution)) {
+            if (!current_categories.includes(category)) {
+              animateCorrect(category, answers)
+            }
+          }
+        }
       }
     });
   }
 
-  function animateLoading() {
-    var t1 = anime.timeline({
-      targets: buttons,
-    }).add({ //make the buttons cascade upon click
-      targets: buttons,
-      translateY: [
-        { value: -5 },
-        { value: 1 },
-      ], 
-      delay: anime.stagger(50)
-    })
-  }
 </script>
-{#if isLoading}
-  <p class="mb-8 text-black text-2xl">Generating puzzle...</p>
-{:else}
-  <p class="mb-8 text-black text-2xl">Create groups of four!</p>
-{/if}
-<Grid bind:this={grid} word_list={word_list} colors={current_colors} categories = {current_categories} 
-  answers = {current_answers} button_depths={button_depths} longbox_depths={longbox_depths} disableds={disableds} 
-  bgs = {button_bgs}
-  on:buttons={handleButtons} />
-<div>
-  <button class="bg-gray-500 text-xl rounded-lg mt-8 p-3" on:click={generate_words}>
-    Regenerate Puzzle
-  </button>
-  <button class="bg-gray-500 text-xl rounded-lg p-3" on:click={shuffle_words}>
-    Shuffle
-  </button>
-  <button class="bg-gray-500 text-xl rounded-lg p-3 disabled:opacity-50" on:click={() => grid.onReset()} disabled={$selected.length === 0}>
-    Deselect All 
-  </button>
-  <button class="bg-gray-500 rounded-lg p-3 text-xl disabled:opacity-50" on:click={check_words} disabled={$selected.length < 4}>
-    Submit
-  </button>
-</div>
+
+  <!-- <Navbar/> -->
+  <p class="mb-8 text-black text-2xl"> {message}</p>
+  <Grid bind:this={grid} word_list={word_list} colors={current_colors} categories = {current_categories} 
+    answers = {current_answers} button_depths={button_depths} longbox_depths={longbox_depths} disableds={disableds} 
+    bgs = {button_bgs}
+    on:buttons={handleButtons} />
+    <p class="mt-2 text-black text-2xl"> Mistakes left: {mistakes}</p>
+  <div>
+    <button class="bg-gray-500 text-xl rounded-lg mt-8 p-3" on:click={generate_words}>
+      Regenerate Puzzle
+    </button>
+    <button class="bg-gray-500 text-xl rounded-lg p-3" on:click={shuffle_words}>
+      Shuffle
+    </button>
+    <button class="bg-gray-500 text-xl rounded-lg p-3 disabled:opacity-50" on:click={() => grid.onReset()} disabled={$selected.length === 0}>
+      Deselect All 
+    </button>
+    <button class="bg-gray-500 rounded-lg p-3 text-xl disabled:opacity-50" on:click={check_words} disabled={$selected.length < 4}>
+      Submit
+    </button>
+  </div>
 
   <!-- for debugging: -->
   <!-- {#each $selected as item}
