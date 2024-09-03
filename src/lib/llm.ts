@@ -1,6 +1,8 @@
 import { HfInference } from "@huggingface/inference";
 import OpenAI from "openai";
 import { prompts } from "./prompts"
+import {api_config} from '../config'
+import {hf_config} from '../config'
 
 type JSONData = { [x: string]: string } | JSONData[];
 interface Message {
@@ -8,8 +10,10 @@ interface Message {
     content: string;
 }
 
-const HF_KEY = import.meta.env.VITE_HF_KEY
-const OPENAI_KEY = import.meta.env.VITE_OPENAI_KEY
+// const HF_KEY = import.meta.env.VITE_HF_KEY
+// const OPENAI_KEY = import.meta.env.VITE_OPENAI_KEY
+const HF_KEY = api_config
+const OPENAI_KEY = hf_config
 const MAXNUM = 100
 const openai = new OpenAI({
   apiKey: OPENAI_KEY, dangerouslyAllowBrowser: true
