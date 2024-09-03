@@ -12,8 +12,8 @@ interface Message {
 
 // const HF_KEY = import.meta.env.VITE_HF_KEY
 // const OPENAI_KEY = import.meta.env.VITE_OPENAI_KEY
-const HF_KEY = api_config
-const OPENAI_KEY = hf_config
+const HF_KEY = hf_config 
+const OPENAI_KEY = api_config
 const MAXNUM = 100
 const openai = new OpenAI({
   apiKey: OPENAI_KEY, dangerouslyAllowBrowser: true
